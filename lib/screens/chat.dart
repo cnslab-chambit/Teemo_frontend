@@ -82,6 +82,31 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  //메세지를 서버에 업로드
+  void _postMessage() async {
+    final Long roomId = ModalRoute.of(context)!.settings.arguments as Long;
+    final String url = 'URL/$roomId/chat';
+
+    //message를 post
+    final response = await http.post(
+      Uri.parse(url),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(_messages
+          .map((m) => {
+                'sender': m.sender,
+                'content': m.content,
+              })
+          .toList()),
+    );
+
+    //post 실패했을 경우
+    if (response.statusCode != 201) {
+      throw Exception('Failed to post message: ${response.statusCode}');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,7 +122,7 @@ class _ChatScreenState extends State<ChatScreen> {
             );
           },
         ),
-        title: const Text('채팅'), //spot 이름이 들어가야할까?
+        title: const Text('상대방의 닉네임'),
       ),
       body: Column(
         children: <Widget>[
@@ -140,6 +165,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             sender: testMyName,
                           ),
                         );
+                        _postMessage(); // 메세지 전송
                         _messageController.clear();
                       },
                     );

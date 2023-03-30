@@ -59,26 +59,42 @@ class _ChatRoomListState extends State<ChatRoomList> {
       appBar: AppBar(
         title: const Text('Chat Rooms'),
       ),
-      body: ListView.builder(
-        // ListView의 아이템 수는 _chatRooms 리스트의 길이와 같음
-        itemCount: _chatRooms.length,
-        itemBuilder: (context, index) {
-          // 현재 인덱스에 해당하는 ChatRoom 객체를 가져옴
-          final chatRoom = _chatRooms[index];
-          // ListTile을 사용하여 채팅방 목록을 보여줌
-          return ListTile(
-            title: Text(chatRoom.title),
-            subtitle: Text('ID: ${chatRoom.id}'),
-            onTap: () {
+      body: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+          border: Border.all(
+            color: Colors.grey,
+            width: 1,
+          ),
+        ),
+        padding: const EdgeInsets.all(8.0),
+        child: ListView.builder(
+          shrinkWrap: true,
+          physics: const ClampingScrollPhysics(),
+          // ListView의 아이템 수는 _chatRooms 리스트의 길이와 같음
+          itemCount: _chatRooms.length,
+          itemBuilder: (context, index) {
+            // 현재 인덱스에 해당하는 ChatRoom 객체를 가져옴
+            final chatRoom = _chatRooms[index];
+            return ListTile(
+              title: Text(chatRoom.title),
+              subtitle: Text('ID: ${chatRoom.id}'),
               //채팅방으로 이동하는 코드
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ChatScreen(arg: chatRoom.id)),
-              );
-            },
-          );
-        },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChatScreen(arg: chatRoom.id),
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

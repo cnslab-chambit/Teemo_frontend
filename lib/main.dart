@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:teemo_front/screens/chatroom_list.dart';
+import 'package:teemo_front/screens/map.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: ChatRoomList(),
+      home: MapScreen(),
     );
   }
 }
