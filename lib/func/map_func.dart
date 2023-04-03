@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 export 'package:teemo_front/func/map_func.dart';
 
 List<Widget> buildButtons(int numPeople, BuildContext context) {
@@ -32,12 +33,29 @@ List<Widget> buildButtons(int numPeople, BuildContext context) {
   return buttons;
 }
 
-Widget buildRow(IconData icon, String text, double Size) {
+Widget buildIconRow(IconData icon, String text, double Size) {
   return Row(
     children: [
       Icon(icon, size: Size),
       const SizedBox(width: 10),
       Text(text, style: TextStyle(fontSize: Size)),
     ],
+  );
+}
+
+Widget buildRow(String text, double Size) {
+  return Row(
+    children: [
+      const SizedBox(width: 10),
+      Text(text, style: TextStyle(fontSize: Size)),
+    ],
+  );
+}
+
+Marker Tag(String name, double longitude, double latitude) {
+  return Marker(
+    markerId: MarkerId(name),
+    position: LatLng(longitude, latitude),
+    infoWindow: InfoWindow(title: name),
   );
 }
