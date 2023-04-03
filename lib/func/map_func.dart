@@ -56,6 +56,5 @@ Marker Tag(String name, double longitude, double latitude) {
   return Marker(
     markerId: MarkerId(name),
     position: LatLng(longitude, latitude),
-    infoWindow: InfoWindow(title: name),
   );
 }

@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:teemo_front/func/map_func.dart';
+import 'package:http/http.dart' as http;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -24,13 +27,16 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController mapController;
 
-  LatLng _center = const LatLng(0, 0);
+  late LatLng _center;
   LatLng markerPosition = const LatLng(37.6207, 127.0570);
+
+  final List<Marker> _tag = [];
 
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
+    _loadtagList();
   }
 
   void _getCurrentLocation() async {
@@ -58,6 +64,25 @@ class _MapScreenState extends State<MapScreen> {
     print(markerPosition.longitude);
   }
 
+  void _loadtagList() async {
+    const String url = 'URL'; //링크 설정
+    final response = await http.get(Uri.parse(url)); //링크 조회
+
+    if (response.statusCode == 200) {
+      final tagList = json.decode(response.body);
+      setState(() {
+        for (final tag in tagList) {
+          final String tagId = tag['markerid'];
+          final double longitude = tag['longitude'];
+          final double latitude = tag['latitude'];
+          _tag.add(Tag(tagId, longitude, latitude));
+        }
+      });
+    } else {
+      throw Exception('Failed to load tag list');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,18 +96,7 @@ class _MapScreenState extends State<MapScreen> {
             ),
             myLocationEnabled: true, // 현재 위치 표시
             myLocationButtonEnabled: true,
-            markers: <Marker>{
-              Tag('한울관', 37.6207, 127.0572),
-              Marker(
-                markerId: const MarkerId('marker_1'),
-                position: markerPosition,
-                draggable: true,
-                onDragEnd: _onMarkerDragEnd,
-                icon: BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueBlue,
-                ),
-              )
-            }, // 현재 위치 버튼 표시
+            markers: <Marker>{Tag('한울관', 37.6207, 127.0572)}, // 현재 위치 버튼 표시
           ),
           DraggableScrollableSheet(
             initialChildSize: 0.2,
