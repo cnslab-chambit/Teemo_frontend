@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'chat.dart';
+import 'map.dart';
 
 class ChatRoomList extends StatefulWidget {
   const ChatRoomList({super.key});
@@ -57,6 +58,17 @@ class _ChatRoomListState extends State<ChatRoomList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MapScreen(),
+              ),
+            );
+          },
+        ),
         title: const Text('Chat Rooms'),
       ),
       body: Container(

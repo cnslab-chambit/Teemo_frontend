@@ -6,6 +6,15 @@ import 'package:location/location.dart';
 import 'package:teemo_front/func/map_func.dart';
 import 'package:http/http.dart' as http;
 
+//전역변수
+late GoogleMapController mapController;
+late LatLng _center;
+LatLng markerPosition = const LatLng(37.6207, 127.0570);
+final List<Marker> _tag = [];
+bool showTagPage = false;
+bool showNavigatePage = false;
+Set<Circle> circles = {};
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -25,18 +34,12 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  late GoogleMapController mapController;
-
-  late LatLng _center;
-  LatLng markerPosition = const LatLng(37.6207, 127.0570);
-
-  final List<Marker> _tag = [];
-
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
-    _loadtagList();
+    //실제 통신시 아래 주석
+    //_loadtagList();
   }
 
   void _getCurrentLocation() async {
@@ -56,12 +59,16 @@ class _MapScreenState extends State<MapScreen> {
     mapController = controller;
   }
 
-  void _onMarkerDragEnd(LatLng position) {
+  void _setShowTagePage(bool value) {
     setState(() {
-      markerPosition = position;
+      showTagPage = value;
     });
-    print(markerPosition.latitude);
-    print(markerPosition.longitude);
+  }
+
+  void _setShowNavigatePage(bool value) {
+    setState(() {
+      showNavigatePage = value;
+    });
   }
 
   void _loadtagList() async {
@@ -75,7 +82,7 @@ class _MapScreenState extends State<MapScreen> {
           final String tagId = tag['markerid'];
           final double longitude = tag['longitude'];
           final double latitude = tag['latitude'];
-          _tag.add(Tag(tagId, longitude, latitude));
+          _tag.add(tag(tagId, longitude, latitude));
         }
       });
     } else {
@@ -90,88 +97,75 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           GoogleMap(
             onMapCreated: _onMapCreated,
+            onTap: (LatLng location) {
+              setState(() {
+                showTagPage = false;
+                circles.clear();
+              });
+            },
             initialCameraPosition: CameraPosition(
               target: _center,
               zoom: 5.0,
             ),
             myLocationEnabled: true, // 현재 위치 표시
-            myLocationButtonEnabled: true,
-            markers: <Marker>{Tag('한울관', 37.6207, 127.0572)}, // 현재 위치 버튼 표시
-          ),
-          DraggableScrollableSheet(
-            initialChildSize: 0.2,
-            minChildSize: 0.2,
-            maxChildSize: 0.9,
-            builder: (BuildContext context, ScrollController scrollController) {
-              return ScrollConfiguration(
-                behavior: ScrollConfiguration.of(context).copyWith(
-                  physics: const ClampingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ).applyTo(const ClampingScrollPhysics()),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 255, 255, 255),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                      border: Border.all(
-                        color: const Color.fromARGB(255, 160, 160, 160),
-                        width: 1,
-                      )),
-                  child: ListView(
-                    controller: scrollController,
-                    children: [
-                      SizedBox(
-                        height: 10,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      buildIconRow(Icons.person, '유저정보', 40),
-                      const SizedBox(height: 30),
-                      const Row(
-                        children: [Text('태그설명')],
-                      ),
-                      const SizedBox(height: 30),
-                      const Divider(
-                        color: Colors.grey,
-                        thickness: 1,
-                      ),
-                      buildRow('모집 인원', 15),
-                      buildRow('나이 조건', 15),
-                      buildRow('성별 조건', 15),
-                      const SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          fixedSize:
-                              Size(MediaQuery.of(context).size.width * 0.6, 50),
-                        ),
-                        child: const Text(
-                          '목적지로 설정',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
+            myLocationButtonEnabled: true, // 현재 위치 버튼 표시
+            mapToolbarEnabled: false,
+            markers: <Marker>{
+              tag('한울관', 37.6207, 127.0572, _setShowTagePage, circles)
             },
+            circles: circles,
           ),
+          if (showNavigatePage)
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              height: showNavigatePage ? MediaQuery.of(context).size.height : 0,
+              curve: Curves.easeOut,
+              child: showNavigatePage ? navigatePage() : null,
+            )
+          else if (showTagPage)
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              height: showTagPage ? MediaQuery.of(context).size.height : 0,
+              curve: Curves.easeOut,
+              child: showTagPage
+                  ? tagPage(_setShowTagePage, _setShowNavigatePage)
+                  : null,
+            )
+          else
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: 50,
+                margin: const EdgeInsets.only(bottom: 20.0),
+                child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    onPressed: () {
+                      //생성페이지로 이동
+                    },
+                    child: Row(
+                      children: [
+                        const Icon(Icons.circle, color: Colors.white),
+                        const Text(
+                          '  사람 모집하기',
+                          style: TextStyle(color: Colors.white, fontSize: 20),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(left: 60.0),
+                          child: const Text(
+                            '태그 생성 ▶',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        )
+                      ],
+                    )),
+              ),
+            ),
         ],
       ),
     );
