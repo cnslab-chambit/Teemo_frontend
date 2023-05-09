@@ -59,7 +59,10 @@ class _ChatRoomListState extends State<ChatRoomList> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+          ),
           onPressed: () {
             Navigator.push(
               context,
@@ -69,19 +72,15 @@ class _ChatRoomListState extends State<ChatRoomList> {
             );
           },
         ),
-        title: const Text('Chat Rooms'),
+        title: const Text(
+          '채팅목록',
+          style: TextStyle(color: Colors.black),
+        ),
+        backgroundColor: Colors.white,
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-          border: Border.all(
-            color: Colors.grey,
-            width: 1,
-          ),
         ),
         padding: const EdgeInsets.all(8.0),
         child: ListView.builder(

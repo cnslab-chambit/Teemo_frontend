@@ -14,6 +14,7 @@ final List<Marker> _tag = [];
 bool showTagPage = false;
 bool showNavigatePage = false;
 Set<Circle> circles = {};
+Set<Polyline> polylines = {};
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -98,29 +99,35 @@ class _MapScreenState extends State<MapScreen> {
           GoogleMap(
             onMapCreated: _onMapCreated,
             onTap: (LatLng location) {
-              setState(() {
-                showTagPage = false;
-                circles.clear();
-              });
+              setState(
+                () {
+                  showTagPage = false;
+                  circles.clear();
+                },
+              );
             },
             initialCameraPosition: CameraPosition(
               target: _center,
-              zoom: 5.0,
+              zoom: 15.0,
             ),
             myLocationEnabled: true, // 현재 위치 표시
             myLocationButtonEnabled: true, // 현재 위치 버튼 표시
             mapToolbarEnabled: false,
             markers: <Marker>{
-              tag('한울관', 37.6207, 127.0572, _setShowTagePage, circles)
+              tag('한울관', 37.6207, 127.0572, _setShowTagePage, circles),
+              tag('비마관', 37.6195, 127.0599, _setShowTagePage, circles)
             },
             circles: circles,
+            polylines: polylines,
           ),
           if (showNavigatePage)
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               height: showNavigatePage ? MediaQuery.of(context).size.height : 0,
               curve: Curves.easeOut,
-              child: showNavigatePage ? navigatePage() : null,
+              child: showNavigatePage
+                  ? navigatePage(_setShowTagePage, _setShowNavigatePage)
+                  : null,
             )
           else if (showTagPage)
             AnimatedContainer(
@@ -139,31 +146,32 @@ class _MapScreenState extends State<MapScreen> {
                 height: 50,
                 margin: const EdgeInsets.only(bottom: 20.0),
                 child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
-                    onPressed: () {
-                      //생성페이지로 이동
-                    },
-                    child: Row(
-                      children: [
-                        const Icon(Icons.circle, color: Colors.white),
-                        const Text(
-                          '  사람 모집하기',
-                          style: TextStyle(color: Colors.white, fontSize: 20),
+                  ),
+                  onPressed: () {
+                    //생성페이지로 이동
+                  },
+                  child: Row(
+                    children: [
+                      const Icon(Icons.circle, color: Colors.white),
+                      const Text(
+                        '  사람 모집하기',
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(left: 60.0),
+                        child: const Text(
+                          '태그 생성 ▶',
+                          style: TextStyle(fontSize: 12),
                         ),
-                        Container(
-                          margin: const EdgeInsets.only(left: 60.0),
-                          child: const Text(
-                            '태그 생성 ▶',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        )
-                      ],
-                    )),
+                      )
+                    ],
+                  ),
+                ),
               ),
             ),
         ],

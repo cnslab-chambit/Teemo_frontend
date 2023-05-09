@@ -123,6 +123,72 @@ class _ChatScreenState extends State<ChatScreen> {
           },
         ),
         title: const Text('상대방의 닉네임'),
+        actions: [
+          Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.more_vert),
+              onPressed: () {
+                Scaffold.of(context).openEndDrawer();
+              },
+            ),
+          ),
+        ],
+      ),
+      endDrawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                '상대방 프로필 or 내 프로필?',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.send),
+              title: const Text('내 위치 전송'),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('내 위치 전송'),
+                      content: const Text('상대방에게 현재 내 위치를 전송하겠습니까?'),
+                      actions: [
+                        TextButton(
+                          child: const Text('취소'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        TextButton(
+                          child: const Text('전송'),
+                          onPressed: () {
+                            // 전송 구현
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.block),
+              title: const Text('강제퇴장'),
+              onTap: () {
+                // Handle the tap on Settings
+              },
+            ),
+          ],
+        ),
       ),
       body: Column(
         children: <Widget>[

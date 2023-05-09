@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:teemo_front/screens/chatroom_list.dart';
+import 'package:teemo_front/screens/map.dart';
 export 'package:teemo_front/func/map_func.dart';
 
 List<Widget> buildButtons(int numPeople, BuildContext context) {
@@ -138,6 +139,17 @@ DraggableScrollableSheet tagPage(
               const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () {
+                  polylines.add(
+                    const Polyline(
+                      polylineId: PolylineId('test'),
+                      color: Colors.red,
+                      width: 5,
+                      points: [
+                        LatLng(37.6207, 127.0572),
+                        LatLng(37.6195, 127.0599),
+                      ],
+                    ),
+                  );
                   setShowTagePage(false);
                   setShowNavigatePage(true);
                 },
@@ -164,19 +176,18 @@ DraggableScrollableSheet tagPage(
   );
 }
 
-DraggableScrollableSheet navigatePage() {
+DraggableScrollableSheet navigatePage(
+    Function(bool) setShowTagePage, Function(bool) setShowNavigatePage) {
   return DraggableScrollableSheet(
     initialChildSize: 0.5,
-    minChildSize: 0.5,
-    maxChildSize: 0.9,
+    minChildSize: 0.2,
+    maxChildSize: 0.5,
     builder: (BuildContext context, ScrollController scrollController) {
-      return ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(
-          physics: const ClampingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ).applyTo(const ClampingScrollPhysics()),
-        ),
+      return SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        //controller: scrollController, //이거 해제하면 위아래 스크롤 가능해짐
         child: Container(
+          height: MediaQuery.of(context).size.height * 0.9,
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           decoration: BoxDecoration(
             color: const Color.fromARGB(255, 255, 255, 255),
@@ -189,11 +200,11 @@ DraggableScrollableSheet navigatePage() {
               width: 1,
             ),
           ),
-          child: ListView(
-            controller: scrollController,
+          child: PageView(
             children: [
               Column(
                 children: [
+                  const SizedBox(height: 10),
                   SizedBox(
                     height: 10,
                     width: MediaQuery.of(context).size.width * 0.2,
@@ -204,33 +215,122 @@ DraggableScrollableSheet navigatePage() {
                       ),
                     ),
                   ),
+                  const Icon(Icons.arrow_upward, size: 100),
+                  const SizedBox(height: 125),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ChatRoomList()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      fixedSize:
+                          Size(MediaQuery.of(context).size.width * 0.6, 50),
+                    ),
+                    child: const Text(
+                      '채팅하기',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.circle,
+                        size: 15,
+                        color: Color.fromARGB(255, 58, 58, 58),
+                      ),
+                      SizedBox(width: 5),
+                      Icon(
+                        Icons.circle,
+                        size: 15,
+                        color: Color.fromARGB(255, 221, 221, 221),
+                      ),
+                    ],
+                  )
                 ],
               ),
-              const Text('네비게이터 자리'),
-              const SizedBox(height: 200),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ChatRoomList()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+              Column(
+                children: [
+                  Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 10,
+                        width: MediaQuery.of(context).size.width * 0.2,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        "* 주의 사항 및 이용가이드",
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        "- 현재 이동 중인 목적지는 Tag의 최초 생성 위치입니다.\n( *호스트의 실제 위치가 아닙니다.)\n\n"
+                        "- 목적지 기준, 반경 500m 이내로 접근 시, 호스트와의 1대1 채팅방이 개설됩니다. (단, 호스트 기준, 채팅인원은 10명으로 제한되어 있습니다. 그 외의 인원은 연결이 불가하여, ‘채팅하기’ 요청을 다시 시도하여 주십시오.) \n\n"
+                        "- 아래 ‘취소하기’ 버튼을 누르면 설정된 목적지를 해제합니다. 호스트와 채팅 중이라면 채팅이 중단되며, 채팅내용은 저장되지 않습니다.",
+                        style: TextStyle(fontSize: 11),
+                      ),
+                      const SizedBox(height: 40),
+                      ElevatedButton(
+                        onPressed: () {
+                          polylines.remove(const PolylineId('test'));
+                          setShowTagePage(true);
+                          setShowNavigatePage(false);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          fixedSize:
+                              Size(MediaQuery.of(context).size.width * 0.6, 50),
+                        ),
+                        child: const Text(
+                          '취소하기',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.circle,
+                            size: 15,
+                            color: Color.fromARGB(255, 221, 221, 221),
+                          ),
+                          SizedBox(width: 5),
+                          Icon(
+                            Icons.circle,
+                            size: 15,
+                            color: Color.fromARGB(255, 58, 58, 58),
+                          ),
+                        ],
+                      )
+                    ],
                   ),
-                  fixedSize: Size(MediaQuery.of(context).size.width * 0.6, 50),
-                ),
-                child: const Text(
-                  '채팅하기',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+                ],
+              )
             ],
           ),
         ),
