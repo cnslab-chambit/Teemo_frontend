@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:teemo_front/func/map_func.dart';
+import 'package:teemo_front/screens/tagmake.dart';
 import 'package:http/http.dart' as http;
 
 //전역변수
@@ -15,6 +16,7 @@ bool showTagPage = false;
 bool showNavigatePage = false;
 Set<Circle> circles = {};
 Set<Polyline> polylines = {};
+late int id;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -72,6 +74,7 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
+  //태그 로드
   void _loadtagList() async {
     const String url = 'URL'; //링크 설정
     final response = await http.get(Uri.parse(url)); //링크 조회
@@ -88,6 +91,24 @@ class _MapScreenState extends State<MapScreen> {
       });
     } else {
       throw Exception('Failed to load tag list');
+    }
+  }
+
+  //유저 정보 로드
+  void loadUserInformation() async {
+    const String url = 'URL'; //링크 설정
+    final response = await http.get(Uri.parse(url)); //링크 조회
+
+    if (response.statusCode == 200) {
+      final User = json.decode(response.body);
+      setState(() {
+        for (final information in User) {
+          final String UserId = information['markerid'];
+          //_tag.add(tag(tagId, longitude, latitude))
+        }
+      });
+    } else {
+      throw Exception('Failed to UserInformation');
     }
   }
 
@@ -153,7 +174,12 @@ class _MapScreenState extends State<MapScreen> {
                     ),
                   ),
                   onPressed: () {
-                    //생성페이지로 이동
+                    //생성페이지로 이동, 멤버 id도 함께 넘겨줘야함
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const CreatetagPage()),
+                    );
                   },
                   child: Row(
                     children: [
