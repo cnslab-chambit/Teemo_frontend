@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:teemo_front/screens/chatroom_list.dart';
 import 'package:teemo_front/screens/map.dart';
 export 'package:teemo_front/func/map_func.dart';
+import 'package:http/http.dart' as http;
 
 List<Widget> buildButtons(int numPeople, BuildContext context) {
   List<Widget> buttons = [];
@@ -45,15 +48,6 @@ Widget buildIconRow(IconData icon, String text, double Size) {
   );
 }
 
-Widget buildRow(String text, double Size) {
-  return Row(
-    children: [
-      const SizedBox(width: 10),
-      Text(text, style: TextStyle(fontSize: Size)),
-    ],
-  );
-}
-
 bool addcircle(Set<Circle> circles, LatLng markerPosition) {
   return circles.add(
     Circle(
@@ -67,10 +61,10 @@ bool addcircle(Set<Circle> circles, LatLng markerPosition) {
   );
 }
 
-Marker tag(String name, double longitude, double latitude,
+Marker tag(String tagid, double longitude, double latitude,
     Function(bool) setShowTagePage, Set<Circle> circles) {
   return Marker(
-    markerId: MarkerId(name),
+    markerId: MarkerId(tagid),
     position: LatLng(longitude, latitude),
     onTap: () {
       setShowTagePage(true);
@@ -79,101 +73,192 @@ Marker tag(String name, double longitude, double latitude,
   );
 }
 
-DraggableScrollableSheet tagPage(
-    Function(bool) setShowTagePage, Function(bool) setShowNavigatePage) {
-  return DraggableScrollableSheet(
-    initialChildSize: 0.2,
-    minChildSize: 0.2,
-    maxChildSize: 0.9,
-    builder: (BuildContext context, ScrollController scrollController) {
-      return ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(
-          physics: const ClampingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ).applyTo(const ClampingScrollPhysics()),
-        ),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 255, 255, 255),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-            border: Border.all(
-              color: const Color.fromARGB(255, 160, 160, 160),
-              width: 1,
-            ),
+Future<DraggableScrollableSheet> tagPage(Function(bool) setShowTagePage,
+    Function(bool) setShowNavigatePage, MarkerId selectedTag) async {
+  final response = await http.get(Uri.parse('URL'));
+
+  if (response.statusCode == 200) {
+    final json = jsonDecode(response.body);
+
+    //final tagId = json['tagId'];
+    final title = json['title'];
+    final maxNum = json['maxNum'];
+    final targetGender = json['targetGender'];
+    final upperAge = json['upperAge'];
+    final lowerAge = json['lowerAge'];
+    //final remainingTime = json['remainingTime'];
+    final hostNickName = json['hostNickName'];
+    final hostGender = json['hostGender'];
+    final hostAge = json['hostAge'];
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.2,
+      minChildSize: 0.2,
+      maxChildSize: 0.9,
+      builder: (BuildContext context, ScrollController scrollController) {
+        return ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(
+            physics: const ClampingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ).applyTo(const ClampingScrollPhysics()),
           ),
-          child: ListView(
-            controller: scrollController,
-            children: [
-              Column(
-                children: [
-                  SizedBox(
-                    height: 10,
-                    width: MediaQuery.of(context).size.width * 0.2,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 255, 255, 255),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              border: Border.all(
+                color: const Color.fromARGB(255, 160, 160, 160),
+                width: 1,
+              ),
+            ),
+            child: ListView(
+              controller: scrollController,
+              children: [
+                Column(
+                  children: [
+                    SizedBox(
+                      height: 10,
+                      width: MediaQuery.of(context).size.width * 0.2,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              buildIconRow(Icons.person, '유저정보', 40),
-              const SizedBox(height: 30),
-              const Row(
-                children: [Text('태그설명')],
-              ),
-              const SizedBox(height: 30),
-              const Divider(
-                color: Colors.grey,
-                thickness: 1,
-              ),
-              buildRow('모집 인원', 15),
-              buildRow('나이 조건', 15),
-              buildRow('성별 조건', 15),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () {
-                  polylines.add(
-                    const Polyline(
-                      polylineId: PolylineId('test'),
-                      color: Colors.red,
-                      width: 5,
-                      points: [
-                        LatLng(37.6207, 127.0572),
-                        LatLng(37.6195, 127.0599),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.person,
+                      size: 70,
+                    ),
+                    const SizedBox(
+                      width: 20,
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          hostNickName ?? '', // 호스트 닉네임
+                          style: const TextStyle(fontSize: 30),
+                        ),
+                        Text(
+                          '  ${hostAge ?? ''} ${hostGender ?? ''}', // 호스트 나이와 성별
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color.fromARGB(255, 82, 82, 82),
+                          ),
+                        ),
                       ],
                     ),
-                  );
-                  setShowTagePage(false);
-                  setShowNavigatePage(true);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  fixedSize: Size(MediaQuery.of(context).size.width * 0.6, 50),
+                  ],
                 ),
-                child: const Text(
-                  '목적지로 설정',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title ?? '', // 태그 제목
+                      style: const TextStyle(
+                          fontSize: 30, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      '설명', // 태그 설명이 필요함
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+                const Divider(
+                  color: Colors.grey,
+                  thickness: 1,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text('모집 인원', style: TextStyle(fontSize: 15)),
+                        const SizedBox(width: 50),
+                        Text(
+                          maxNum ?? '', // 모집 인원
+                          style:
+                              const TextStyle(fontSize: 15, color: Colors.blue),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Text('나이 조건', style: TextStyle(fontSize: 15)),
+                        const SizedBox(width: 50),
+                        Text(
+                          '${upperAge ?? ''} ~ ${lowerAge ?? ''}', // 나이 조건 범위
+                          style:
+                              const TextStyle(fontSize: 15, color: Colors.blue),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Text('성별 조건', style: TextStyle(fontSize: 15)),
+                        const SizedBox(width: 50),
+                        Text(
+                          targetGender ?? '', // 성별 조건
+                          style:
+                              const TextStyle(fontSize: 15, color: Colors.blue),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    polylines.add(
+                      const Polyline(
+                        polylineId: PolylineId('test'),
+                        color: Colors.red,
+                        width: 5,
+                        points: [
+                          LatLng(37.6207, 127.0572),
+                          LatLng(37.6195, 127.0599),
+                        ],
+                      ),
+                    );
+                    setShowTagePage(false);
+                    setShowNavigatePage(true);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    fixedSize:
+                        Size(MediaQuery.of(context).size.width * 0.6, 50),
+                  ),
+                  child: const Text(
+                    '목적지로 설정',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
+  } else {
+    throw Exception('Failed to fetch tag');
+  }
 }
 
 DraggableScrollableSheet navigatePage(

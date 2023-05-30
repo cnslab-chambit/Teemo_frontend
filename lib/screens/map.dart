@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
@@ -16,33 +14,40 @@ bool showTagPage = false;
 bool showNavigatePage = false;
 Set<Circle> circles = {};
 Set<Polyline> polylines = {};
+late MarkerId selectedTag;
+
 late int id;
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String memberId; // memberId 매개변수 추가
+
+  const MyApp({Key? key, required this.memberId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: MapScreen(),
+    return MaterialApp(
+      home: MapScreen(memberId: memberId), // memberId 값을 전달
     );
   }
 }
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  final String memberId;
+  const MapScreen({Key? key, required this.memberId}) : super(key: key);
 
   @override
-  _MapScreenState createState() => _MapScreenState();
+  MapScreenState createState() => MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
-    //실제 통신시 아래 주석
-    //_loadtagList();
+    //실제 통신시 아래 주석 해제
+    print("1");
+    loadtagList();
+    print("3");
   }
 
   void _getCurrentLocation() async {
@@ -75,57 +80,74 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   //태그 로드
-  void _loadtagList() async {
-    const String url = 'URL'; //링크 설정
-    final response = await http.get(Uri.parse(url)); //링크 조회
+  void loadtagList() async {
+    print("2");
+    var url = Uri.parse('http://13.124.37.24:8080/');
 
+    // var requestBody = {
+    //   'memberId': 2,
+    //   'latitude': _center.latitude,
+    //   'longitude': _center.longitude,
+    // };
+
+    var response = await http.get(url);
+
+    //로드한 태그는 _tag에 저장
     if (response.statusCode == 200) {
-      final tagList = json.decode(response.body);
-      setState(() {
-        for (final tag in tagList) {
-          final String tagId = tag['markerid'];
-          final double longitude = tag['longitude'];
-          final double latitude = tag['latitude'];
-          _tag.add(tag(tagId, longitude, latitude));
-        }
-      });
+      print("반환성공반환성공반환성공반환성공반환성공반환성공반환성공반환성공반환성공반환성공");
+      // final tagList = json.decode(response.body);
+      // setState(() {
+      //   print("good");
+      // }
+      //     // () {
+      //     //   for (final tag in tagList) {
+      //     //     final String tagId = tag['tagid'];
+      //     //     final double longitude = tag['longitude'];
+      //     //     final double latitude = tag['latitude'];
+      //     //     _tag.add(tag(tagId, longitude, latitude));
+      //     //   }
+      //     // },
+      //     );
     } else {
+      print("반환실패");
       throw Exception('Failed to load tag list');
     }
   }
 
-  //유저 정보 로드
-  void loadUserInformation() async {
-    const String url = 'URL'; //링크 설정
-    final response = await http.get(Uri.parse(url)); //링크 조회
+  //서버에서 읽어온 마커리스트를 토대로 마커세트 생성
+  Set<Marker> createMarkers(List<Marker> taglist) {
+    Set<Marker> markers = {};
 
-    if (response.statusCode == 200) {
-      final User = json.decode(response.body);
-      setState(() {
-        for (final information in User) {
-          final String UserId = information['markerid'];
-          //_tag.add(tag(tagId, longitude, latitude))
-        }
-      });
-    } else {
-      throw Exception('Failed to UserInformation');
+    for (Marker tag in taglist) {
+      Marker marker = Marker(
+        markerId: tag.markerId,
+        position: tag.position,
+        onTap: () {
+          setState(() {
+            showTagPage = true;
+            selectedTag = tag.markerId;
+          });
+        },
+      );
+      markers.add(marker);
     }
+
+    return markers;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           GoogleMap(
             onMapCreated: _onMapCreated,
             onTap: (LatLng location) {
-              setState(
-                () {
-                  showTagPage = false;
-                  circles.clear();
-                },
-              );
+              setState(() {
+                showTagPage = false;
+                circles.clear();
+              });
             },
             initialCameraPosition: CameraPosition(
               target: _center,
@@ -134,32 +156,47 @@ class _MapScreenState extends State<MapScreen> {
             myLocationEnabled: true, // 현재 위치 표시
             myLocationButtonEnabled: true, // 현재 위치 버튼 표시
             mapToolbarEnabled: false,
-            markers: <Marker>{
-              tag('한울관', 37.6207, 127.0572, _setShowTagePage, circles),
-              tag('비마관', 37.6195, 127.0599, _setShowTagePage, circles)
-            },
+            markers: createMarkers(_tag),
             circles: circles,
-            polylines: polylines,
+            //polylines: polylines,
           ),
-          if (showNavigatePage)
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              height: showNavigatePage ? MediaQuery.of(context).size.height : 0,
-              curve: Curves.easeOut,
-              child: showNavigatePage
-                  ? navigatePage(_setShowTagePage, _setShowNavigatePage)
-                  : null,
-            )
-          else if (showTagPage)
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              height: showTagPage ? MediaQuery.of(context).size.height : 0,
-              curve: Curves.easeOut,
-              child: showTagPage
-                  ? tagPage(_setShowTagePage, _setShowNavigatePage)
-                  : null,
-            )
-          else
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: showNavigatePage ? MediaQuery.of(context).size.height : 0,
+            curve: Curves.easeOut,
+            child: showNavigatePage
+                ? navigatePage(_setShowTagePage, _setShowNavigatePage)
+                : null,
+          ),
+          /*AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: showTagPage ? MediaQuery.of(context).size.height : 0,
+            curve: Curves.easeOut,
+            child: showTagPage
+                ? tagPage(_setShowTagePage, _setShowNavigatePage, selectedTag)
+                : null,
+          ),*/
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: showTagPage ? MediaQuery.of(context).size.height : 0,
+            curve: Curves.easeOut,
+            child: showTagPage
+                ? FutureBuilder<DraggableScrollableSheet>(
+                    future: tagPage(
+                        _setShowTagePage, _setShowNavigatePage, selectedTag),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        return snapshot.data!;
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        return const CircularProgressIndicator();
+                      }
+                    },
+                  )
+                : null,
+          ),
+          if (!showNavigatePage && !showTagPage)
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
@@ -178,7 +215,9 @@ class _MapScreenState extends State<MapScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const CreatetagPage()),
+                        builder: (context) =>
+                            CreatetagPage(memberId: widget.memberId),
+                      ),
                     );
                   },
                   child: Row(

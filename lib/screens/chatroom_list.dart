@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'chat.dart';
-import 'map.dart';
 
 class ChatRoomList extends StatefulWidget {
   const ChatRoomList({super.key});
@@ -27,11 +26,11 @@ class _ChatRoomListState extends State<ChatRoomList> {
   }
 
   _temDataFetchChatRooms() {
-    _chatRooms.add(ChatRoom(id: 1, title: "test1"));
-    _chatRooms.add(ChatRoom(id: 2, title: "test2"));
-    _chatRooms.add(ChatRoom(id: 3, title: "test3"));
-    _chatRooms.add(ChatRoom(id: 4, title: "test4"));
-    _chatRooms.add(ChatRoom(id: 5, title: "test5"));
+    _chatRooms.add(ChatRoom(id: 1, title: "심심한사람"));
+    //_chatRooms.add(ChatRoom(id: 2, title: "UserName2"));
+    //_chatRooms.add(ChatRoom(id: 3, title: "UserName3"));
+    //_chatRooms.add(ChatRoom(id: 4, title: "UserName4"));
+    //_chatRooms.add(ChatRoom(id: 5, title: "UserName5"));
   }
 
   Future<void> _fetchChatRooms() async {
@@ -64,12 +63,7 @@ class _ChatRoomListState extends State<ChatRoomList> {
             color: Colors.black,
           ),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MapScreen(),
-              ),
-            );
+            Navigator.of(context).pop();
           },
         ),
         title: const Text(
@@ -92,8 +86,10 @@ class _ChatRoomListState extends State<ChatRoomList> {
             // 현재 인덱스에 해당하는 ChatRoom 객체를 가져옴
             final chatRoom = _chatRooms[index];
             return ListTile(
+              leading: const Icon(Icons.person),
               title: Text(chatRoom.title),
-              subtitle: Text('ID: ${chatRoom.id}'),
+              //subtitle: Text('ID: ${chatRoom.id}'),
+              subtitle: const Text('남 20'),
               //채팅방으로 이동하는 코드
               onTap: () {
                 Navigator.push(

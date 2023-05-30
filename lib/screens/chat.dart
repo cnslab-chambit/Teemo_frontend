@@ -47,16 +47,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   _temLoadChatHistory() {
-    _messages.add(Message(content: "안녕하세요1", sender: testMyName));
-    _messages.add(Message(content: "안녕하세요2", sender: testyourName));
-    _messages.add(Message(content: "안녕하세요1", sender: testMyName));
-    _messages.add(Message(content: "안녕하세요2", sender: testyourName));
-    _messages.add(Message(content: "안녕하세요1", sender: testMyName));
-    _messages.add(Message(content: "안녕하세요2", sender: testyourName));
-    _messages.add(Message(content: "안녕하세요1", sender: testMyName));
-    _messages.add(Message(content: "안녕하세요2", sender: testyourName));
-    _messages.add(Message(content: "안녕하세요1", sender: testMyName));
-    _messages.add(Message(content: "안녕하세요2", sender: testyourName));
+    _messages.add(Message(content: "진짜 10연승 찍을때까지 집 못가요?", sender: testMyName));
+    _messages.add(Message(content: "네", sender: testyourName));
   }
 
   void _loadChatHistory() async {
@@ -122,7 +114,7 @@ class _ChatScreenState extends State<ChatScreen> {
             );
           },
         ),
-        title: const Text('상대방의 닉네임'),
+        title: const Text('심심한 사람'),
         actions: [
           Builder(
             builder: (context) => IconButton(
@@ -182,9 +174,37 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.block),
-              title: const Text('강제퇴장'),
+              title: const Text('채팅방 나가기'),
               onTap: () {
-                // Handle the tap on Settings
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('채팅방 나가기'),
+                      content: const Text('정말로 채팅방을 나가시겠습니까?'),
+                      actions: [
+                        TextButton(
+                          child: const Text('취소'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        TextButton(
+                          child: const Text('나가기'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('채팅방을 퇴장했습니다')),
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
               },
             ),
           ],
@@ -231,7 +251,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             sender: testMyName,
                           ),
                         );
-                        _postMessage(); // 메세지 전송
+                        //_postMessage(); // 메세지 전송
                         _messageController.clear();
                       },
                     );
